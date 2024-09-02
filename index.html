@@ -124,7 +124,8 @@
     const startTime1 = new Date(document.getElementById('startTime1').value + "T00:00:00Z").getTime();
     const startTime2 = new Date(document.getElementById('startTime2').value + "T00:00:00Z").getTime();
 
-    fetch('http://localhost:3000/calculateMA', {
+    // fetch('http://localhost:3000/calculateMA', {
+    fetch('https://web3zhu.cn/calculateMA', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ startTime1, startTime2 })
