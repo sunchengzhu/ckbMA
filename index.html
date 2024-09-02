@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Average Calculator</title>
+    <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/flatpickr/flatpickr.min.css">
+    <script src="assets/flatpickr/flatpickr.min.js"></script>
+    <script src="assets/flatpickr/l10n/zh.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .container h1 {
+            margin-bottom: 30px; /* 增加30px的底部边距 */
+        }
+
+        .controls, .result {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .controls label {
+            white-space: nowrap;
+        }
+
+        .controls input[type="text"] {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        .controls button {
+            flex: 0 0 auto;
+            margin-left: 20px; /* 增加按钮的左边距 */
+        }
+
+        .input-group {
+            display: flex;
+            width: 40%;
+        }
+
+        .link-container {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px 0;
+            font-size: 16px;
+        }
+
+        .link-container a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .link-container a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>CKB移动平均线（MA）</h1>
+    <div class="controls">
+        <label for="startTime1">开始日期:</label>
+        <input type="text" class="form-control" id="startTime1" placeholder="Select start date">
+        <label for="startTime2">结束日期:</label>
+        <input type="text" class="form-control" id="startTime2" placeholder="Select end date">
+        <button onclick="fetchMovingAverages()" class="btn btn-primary">计算每日MA</button>
+    </div>
+
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" id="overallMA" placeholder="每日MA平均价">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" onclick="copyOverallMA()">复制数值</button>
+        </div>
+    </div>
+    <pre id="maDetails"></pre>
+
+    <div class="link-container">
+        <a href="https://www.binance.com/zh-CN/trade/CKB_USDT" target="_blank">访问 Binance CKB/USDT 交易页</a>
+    </div>
+</div>
+
+<script>
+  function getYesterdayDate() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    return yesterday.toISOString().slice(0, 10);
+  }
+
+  function getLastMonthTenthDate() {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 1);
+    date.setDate(10);
+    return date.toISOString().slice(0, 10);
+  }
+
+  const maxDate = new Date().toISOString().slice(0, 10);
+
+  flatpickr("#startTime1", {
+    enableTime: false,
+    dateFormat: "Y-m-d",
+    defaultDate: getLastMonthTenthDate(),
+    maxDate: maxDate,
+    locale: 'zh'
+  });
+
+  flatpickr("#startTime2", {
+    enableTime: false,
+    dateFormat: "Y-m-d",
+    defaultDate: getYesterdayDate(),
+    maxDate: maxDate,
+    locale: 'zh'
+  });
+
+  function fetchMovingAverages() {
+    const startTime1 = new Date(document.getElementById('startTime1').value + "T00:00:00Z").getTime();
+    const startTime2 = new Date(document.getElementById('startTime2').value + "T00:00:00Z").getTime();
+
+    fetch('http://localhost:3000/calculateMA', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ startTime1, startTime2 })
+    })
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('overallMA').value = data.overallMA;
+        document.getElementById('maDetails').textContent = data.dailyMA.map(item => `${item.date} ${item.ma}`).join('\n');
+      })
+      .catch(error => console.error('Error fetching moving averages:', error));
+  }
+
+  function copyOverallMA() {
+    const overallMA = document.getElementById('overallMA').value; // 获取需要复制的文本值
+    navigator.clipboard.writeText(overallMA) // 将文本写入剪贴板
+      .then(() => {
+        console.log('Text successfully copied to clipboard');
+      })
+      .catch(err => {
+        console.error('Failed to copy text to clipboard:', err);
+      });
+  }
+
+</script>
+</body>
+</html>
