@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="assets/flatpickr/flatpickr.min.css">
     <script src="assets/flatpickr/flatpickr.min.js"></script>
     <script src="assets/flatpickr/l10n/zh.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -96,10 +97,10 @@
   }
 
   function getLastMonthTenthDate() {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 1);
-    date.setDate(10);
-    return date.toISOString().slice(0, 10);
+    const today = new Date();
+    const lastMonth = dateFns.subMonths(today, 1); // 减少一个月
+    const tenthDayLastMonth = dateFns.setDate(lastMonth, 10); // 设置为上个月的第10天
+    return dateFns.format(tenthDayLastMonth, 'yyyy-MM-dd'); // 格式化日期
   }
 
   const maxDate = new Date().toISOString().slice(0, 10);
