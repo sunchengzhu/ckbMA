@@ -1,5 +1,2 @@
 .idea
 node_modules
-dist
-calculateMA-bundle.js
-calculateMA.log

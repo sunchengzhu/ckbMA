@@ -1,5 +1,4 @@
 ```bash
-npm run build
-# 把calculateMA-bundle.js放到price.db的同级目录
-nohup node calculateMA-bundle.js > calculateMA.log 2>&1 &
+nohup node calculateMA.js > calculateMA.log 2>&1 &
 ```
+按住control + A再按D，将会话分离
