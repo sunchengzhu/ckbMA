@@ -1,17 +1,44 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
+const chokidar = require('chokidar');
 const app = express();
 app.use(cors());  // Enable CORS
 app.use(express.json());
 const PORT = 3000;
 
-const db = new sqlite3.Database('./price.db', sqlite3.OPEN_READWRITE, (err) => {
+let db = new sqlite3.Database('./price.db', sqlite3.OPEN_READWRITE, (err) => {
   if (err) {
     console.error('Error opening database', err.message);
     return;
   }
   console.log('Database connection successfully established.');
+});
+
+// 使用 chokidar 监听数据库文件变化
+const watcher = chokidar.watch('./price.db', {
+  ignored: /(^|[\/\\])\../, // 忽略点文件
+  persistent: true
+});
+
+watcher.on('change', path => {
+  console.log(`File ${path} has been changed. Reinitializing database connection...`);
+  // 关闭旧的数据库连接
+  db.close((err) => {
+    if (err) {
+      console.error('Error closing old database connection:', err.message);
+    } else {
+      console.log('Old database connection successfully closed.');
+    }
+    // 初始化新的数据库连接
+    db = new sqlite3.Database('./price.db', sqlite3.OPEN_READWRITE, (err) => {
+      if (err) {
+        console.error('Error reinitializing database', err.message);
+        return;
+      }
+      console.log('Database connection successfully reestablished.');
+    });
+  });
 });
 
 // RPC接口处理POST请求
