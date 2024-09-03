@@ -2,6 +2,7 @@ const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const chokidar = require('chokidar');
+const moment = require('moment-timezone');
 const app = express();
 app.use(cors());  // Enable CORS
 app.use(express.json());
@@ -22,7 +23,7 @@ const watcher = chokidar.watch('./price.db', {
 });
 
 watcher.on('change', path => {
-  console.log(`File ${path} has been changed. Reinitializing database connection...`);
+  console.log(`${timestamp()} File ${path} has been changed. Reinitializing database connection...`);
   // 关闭旧的数据库连接
   db.close((err) => {
     if (err) {
@@ -114,6 +115,10 @@ function calculateMovingAverages(startTime1, startTime2, callback) {
       });
     });
   });
+}
+
+function timestamp() {
+  return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
 }
 
 app.listen(PORT, () => {
