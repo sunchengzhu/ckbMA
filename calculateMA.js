@@ -60,62 +60,37 @@ app.post('/calculateMA', (req, res) => {
 function calculateMovingAverages(startTime1, startTime2, callback) {
   const minTime = Math.min(startTime1, startTime2);
   const maxTime = Math.max(startTime1, startTime2);
-  db.get(`SELECT COUNT(*) AS count FROM klines WHERE startTime BETWEEN ? AND ?`, [minTime, maxTime], (err, result) => {
+
+  // 直接查询指定范围内的每天的 lastPrice
+  const query = `
+        SELECT date, lastPrice
+        FROM klines
+        WHERE startTime BETWEEN ? AND ?
+        ORDER BY startTime ASC
+    `;
+  db.all(query, [minTime, maxTime], (err, rows) => {
     if (err) {
-      console.error('Error querying count', err.message);
-      return;
+      console.error('Error querying data', err.message);
+      return callback(err);
     }
-    const count = result.count;
-    const offset = count - 1;
+    if (rows.length > 0) {
+      // 计算所有 lastPrice 的平均值作为 MA
+      const prices = rows.map(row => parseFloat(row.lastPrice));
+      const sum = prices.reduce((acc, price) => acc + price, 0);
+      const MA = sum / prices.length; // 平均值
 
-    db.get(`SELECT startTime FROM klines WHERE startTime <= ? ORDER BY startTime DESC LIMIT 1 OFFSET ?`, [minTime, offset], (err, minRow) => {
-      if (err) {
-        console.error('Error querying minimum startTime', err.message);
-        return;
-      }
-      const adjustedMinTime = minRow ? minRow.startTime : minTime;
+      // 创建 dailyLastPrice 列表
+      const dailyLastPrice = rows.map(row => ({ date: row.date, lastPrice: row.lastPrice }));
 
-      // 获取指定范围加上必要的历史数据
-      const query = `
-          SELECT date, lastPrice
-          FROM klines
-          WHERE startTime BETWEEN ? AND ?
-          ORDER BY startTime ASC
-        `;
-      db.all(query, [adjustedMinTime, maxTime], (err, rows) => {
-        if (err) {
-          console.error('Error querying data', err.message);
-          return;
-        }
-        if (rows.length > offset) {
-          // 计算每个点的移动平均值
-          let sum = 0;
-          let movingAveragesSum = 0;
-          let movingAveragesCount = 0;
-          let details = [];
-
-          const prices = rows.map(row => parseFloat(row.lastPrice));
-          for (let i = offset; i < prices.length; i++) {
-            sum = prices.slice(i - offset, i + 1).reduce((a, b) => a + b, 0);
-            const movingAverage = sum / (offset + 1);
-            movingAveragesSum += movingAverage; // 累加每个移动平均值
-            movingAveragesCount++;
-            // console.log(`${rows[i].date} MA(${offset + 1}): ${movingAverage.toFixed(6)}`);
-            details.push({ date: rows[i].date, ma: `MA(${offset + 1}): ${movingAverage.toFixed(6)}` });
-          }
-
-          if (movingAveragesCount > 0) {
-            const overallMovingAverage = movingAveragesSum / movingAveragesCount;
-            // console.log(`Overall Average of MAs: ${overallMovingAverage.toFixed(6)}`);
-            callback(null, { overallMA: overallMovingAverage.toFixed(6), dailyMA: details });
-          }
-        } else {
-          console.log('Not enough data available for the specified range.');
-        }
-      });
-    });
+      // 调用回调函数返回结果，包括天数
+      callback(null, { MA: MA.toFixed(6), days: prices.length, dailyLastPrice: dailyLastPrice });
+    } else {
+      console.log('Not enough data available for the specified range.');
+      callback(new Error('Not enough data'));
+    }
   });
 }
+
 
 function timestamp() {
   return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');

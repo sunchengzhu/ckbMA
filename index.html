@@ -19,7 +19,11 @@
             margin-bottom: 30px; /* 增加30px的底部边距 */
         }
 
-        .controls, .result {
+        .container h2 {
+            margin-top: 30px; /* 增加30px的底部边距 */
+        }
+
+        .controls {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -34,12 +38,7 @@
 
         .controls input[type="text"] {
             flex: 1;
-            min-width: 160px;
-        }
-
-        .controls button {
-            flex: 0 0 auto;
-            margin-left: 20px; /* 增加按钮的左边距 */
+            min-width: 120px;
         }
 
         .input-group {
@@ -62,6 +61,45 @@
         .link-container a:hover {
             text-decoration: underline;
         }
+
+        .controls-half {
+            width: 60%; /* 设置宽度为容器的50% */
+            margin-top: 50px;
+            margin-right: auto;
+            display: flex; /* 使用Flex布局保持内部元素在一行 */
+            flex-wrap: nowrap; /* 防止内容换行 */
+            /*gap: 10px;         !* 元素之间的间距 *!*/
+            align-items: center; /* 垂直居中对齐 */
+        }
+
+        .controls-half .form-control {
+            flex-grow: 1; /* 确保输入框可以伸缩填充空余空间 */
+        }
+
+        .controls-half button {
+            flex-shrink: 0; /* 防止按钮缩小 */
+        }
+
+        .controls-half input[type="text"] {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        /* 为所有除最后一个之外的元素设置默认的间隔 */
+        .controls-half > :not(:last-child) {
+            margin-right: 10px;
+        }
+
+        /* 第三个元素与第四个元素之间增加间隔 */
+        .controls-half > :nth-child(3) {
+            margin-right: 40px;
+        }
+
+        /* 第四个元素与第五个元素之间无间隔 */
+        .controls-half > :nth-child(4) {
+            margin-right: 0;
+        }
+
     </style>
 </head>
 <body>
@@ -72,16 +110,27 @@
         <input type="text" class="form-control" id="startTime1" placeholder="Select start date">
         <label for="startTime2">结束日期:</label>
         <input type="text" class="form-control" id="startTime2" placeholder="Select end date">
-        <button onclick="fetchMovingAverages()" class="btn btn-primary">计算每日MA</button>
+        <button onclick="fetchMovingAverages()" class="btn btn-primary">计算</button>
     </div>
 
     <div class="input-group mb-3">
-        <input type="text" class="form-control" id="overallMA" placeholder="每日MA平均价">
+        <input type="text" class="form-control" id="MA" placeholder="MA价格">
         <div class="input-group-append">
-            <button class="btn btn-outline-secondary" type="button" onclick="copyOverallMA()">复制数值</button>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyMA()">复制</button>
         </div>
     </div>
-    <pre id="maDetails"></pre>
+
+    <div class="controls-half">
+        <input type="text" class="form-control" id="usdtInput" placeholder="输入USDT数量">
+        <input type="text" class="form-control" id="ckbInput" placeholder="输入CKB价格">
+        <button onclick="calculateResult()" class="btn btn-primary">计算</button>
+        <input type="text" class="form-control" id="resultOutput" placeholder="CKB数量">
+        <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
+    </div>
+
+    <h2 id="maDays"></h2>
+
+    <pre id="lastPriceDetails"></pre>
 
     <div class="link-container">
         <a href="https://www.binance.com/zh-CN/trade/CKB_USDT" target="_blank">访问 Binance CKB/USDT 交易页</a>
@@ -91,9 +140,8 @@
 <script>
   function getYesterdayDate() {
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    return yesterday.toISOString().slice(0, 10);
+    const yesterday = dateFns.subDays(today, 1); // 减少一天
+    return dateFns.format(yesterday, 'yyyy-MM-dd'); // 格式化日期
   }
 
   function getLastMonthTenthDate() {
@@ -121,33 +169,68 @@
     locale: 'zh'
   });
 
+  document.addEventListener('DOMContentLoaded', function () {
+    // 页面加载完成后读取并设置日期
+    const savedStartDate = localStorage.getItem('startDate');
+    const savedEndDate = localStorage.getItem('endDate');
+
+    if (savedStartDate) {
+      document.getElementById('startTime1').value = dateFns.format(new Date(parseInt(savedStartDate)), 'yyyy-MM-dd');
+    }
+    // 如果存在保存的结束日期时间戳，将其转换为日期字符串并设置到输入框
+    if (savedEndDate) {
+      document.getElementById('startTime2').value = dateFns.format(new Date(parseInt(savedEndDate)), 'yyyy-MM-dd');
+    }
+  });
+
   function fetchMovingAverages() {
     const startTime1 = new Date(document.getElementById('startTime1').value + "T00:00:00Z").getTime();
     const startTime2 = new Date(document.getElementById('startTime2').value + "T00:00:00Z").getTime();
 
-    // fetch('http://localhost:3000/calculateMA', {
-    fetch('https://web3zhu.cn/calculateMA', {
+    // 保存日期到LocalStorage
+    const startTimestamp = new Date(startTime1).getTime();
+    const endTimestamp = new Date(startTime2).getTime();
+    console.log("startTimestamp:",startTimestamp)
+    localStorage.setItem('startDate', startTimestamp);
+    localStorage.setItem('endDate', endTimestamp);
+
+    fetch('http://localhost:3000/calculateMA', {
+      // fetch('https://web3zhu.cn/calculateMA', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ startTime1, startTime2 })
     })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('overallMA').value = data.overallMA;
-        document.getElementById('maDetails').textContent = data.dailyMA.map(item => `${item.date} ${item.ma}`).join('\n');
+        document.getElementById('MA').value = data.MA;
+        document.getElementById('maDays').textContent = `MA(${data.days})`; // 设置天数标题
+        document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item => `${item.date} 收盘价: ${item.lastPrice.replace(/00$/, '')}`).join('\n');
       })
       .catch(error => console.error('Error fetching moving averages:', error));
   }
 
-  function copyOverallMA() {
-    const overallMA = document.getElementById('overallMA').value; // 获取需要复制的文本值
-    navigator.clipboard.writeText(overallMA) // 将文本写入剪贴板
+  function copyMA() {
+    const MA = document.getElementById('MA').value; // 获取需要复制的文本值
+    navigator.clipboard.writeText(MA) // 将文本写入剪贴板
       .then(() => {
         console.log('Text successfully copied to clipboard');
       })
       .catch(err => {
         console.error('Failed to copy text to clipboard:', err);
       });
+  }
+
+  function calculateResult() {
+    const usdtPrice = parseFloat(document.getElementById('usdtInput').value);
+    const ckbPrice = parseFloat(document.getElementById('ckbInput').value);
+    document.getElementById('resultOutput').value = (usdtPrice / ckbPrice).toFixed(8);
+  }
+
+  function copyResult() {
+    const result = document.getElementById('resultOutput').value;
+    navigator.clipboard.writeText(result)
+      .then(() => console.log('Result copied to clipboard!'))
+      .catch(err => console.error('Failed to copy result:', err));
   }
 
 </script>
