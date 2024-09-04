@@ -164,33 +164,39 @@
 
   const maxDate = new Date().toISOString().slice(0, 10);
 
-  flatpickr("#startTime1", {
-    enableTime: false,
-    dateFormat: "Y-m-d",
-    defaultDate: getLastMonthTenthDate(),
-    maxDate: maxDate,
-    locale: 'zh'
-  });
-
-  flatpickr("#startTime2", {
-    enableTime: false,
-    dateFormat: "Y-m-d",
-    defaultDate: getYesterdayDate(),
-    maxDate: maxDate,
-    locale: 'zh'
-  });
+  let startTime1Picker;
+  let startTime2Picker;
 
   document.addEventListener('DOMContentLoaded', function () {
-    // 页面加载完成后读取并设置日期
+    // 初始化Flatpickr实例
+    startTime1Picker = flatpickr("#startTime1", {
+      enableTime: false,
+      dateFormat: "Y-m-d",
+      defaultDate: getLastMonthTenthDate(),
+      maxDate: maxDate,
+      locale: 'zh'
+    });
+
+    startTime2Picker = flatpickr("#startTime2", {
+      enableTime: false,
+      dateFormat: "Y-m-d",
+      defaultDate: getYesterdayDate(),
+      maxDate: maxDate,
+      locale: 'zh'
+    });
+
+    // 从localStorage读取并设置日期
     const savedStartDate = localStorage.getItem('startDate');
     const savedEndDate = localStorage.getItem('endDate');
 
     if (savedStartDate) {
-      document.getElementById('startTime1').value = dateFns.format(new Date(parseInt(savedStartDate)), 'yyyy-MM-dd');
+      const formattedStartDate = dateFns.format(new Date(parseInt(savedStartDate)), 'yyyy-MM-dd');
+      startTime1Picker.setDate(formattedStartDate);
     }
-    // 如果存在保存的结束日期时间戳，将其转换为日期字符串并设置到输入框
+
     if (savedEndDate) {
-      document.getElementById('startTime2').value = dateFns.format(new Date(parseInt(savedEndDate)), 'yyyy-MM-dd');
+      const formattedEndDate = dateFns.format(new Date(parseInt(savedEndDate)), 'yyyy-MM-dd');
+      startTime2Picker.setDate(formattedEndDate);
     }
   });
 
@@ -246,9 +252,10 @@
   function resetDates() {
     localStorage.removeItem('startDate');
     localStorage.removeItem('endDate');
-    // 重新设置输入框为默认日期
-    document.getElementById('startTime1').value = getLastMonthTenthDate();
-    document.getElementById('startTime2').value = getYesterdayDate();
+
+    // 使用Flatpickr实例直接设置日期
+    startTime1Picker.setDate(getLastMonthTenthDate());
+    startTime2Picker.setDate(getYesterdayDate());
   }
 
 </script>
