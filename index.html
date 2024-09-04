@@ -63,11 +63,11 @@
         }
 
         .controls-half {
-            width: 60%; /* 设置宽度为容器的50% */
+            width: 100%;
             margin-top: 50px;
             margin-right: auto;
             display: flex; /* 使用Flex布局保持内部元素在一行 */
-            flex-wrap: nowrap; /* 防止内容换行 */
+            flex-wrap: wrap; /* 允许内容在必要时进行换行 */
             /*gap: 10px;         !* 元素之间的间距 *!*/
             align-items: center; /* 垂直居中对齐 */
         }
@@ -98,6 +98,10 @@
         /* 第四个元素与第五个元素之间无间隔 */
         .controls-half > :nth-child(4) {
             margin-right: 0;
+        }
+
+        .controls-half > * {
+            margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
         }
 
     </style>
