@@ -111,6 +111,7 @@
         <label for="startTime2">结束日期:</label>
         <input type="text" class="form-control" id="startTime2" placeholder="Select end date">
         <button onclick="fetchMovingAverages()" class="btn btn-primary">计算</button>
+        <button onclick="resetDates()" class="btn btn-secondary">重置日期</button>
     </div>
 
     <div class="input-group mb-3">
@@ -240,6 +241,14 @@
     navigator.clipboard.writeText(result)
       .then(() => console.log('Result copied to clipboard!'))
       .catch(err => console.error('Failed to copy result:', err));
+  }
+
+  function resetDates() {
+    localStorage.removeItem('startDate');
+    localStorage.removeItem('endDate');
+    // 重新设置输入框为默认日期
+    document.getElementById('startTime1').value = getLastMonthTenthDate();
+    document.getElementById('startTime2').value = getYesterdayDate();
   }
 
 </script>
