@@ -107,6 +107,14 @@
             margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
         }
 
+        .stats span {
+            font-size: 1rem; /* 调整字体大小 */
+        }
+
+        .ma-label {
+            margin-right: 20px; /* 增加更大的右边距 */
+        }
+
     </style>
 </head>
 <body>
@@ -122,7 +130,7 @@
     </div>
 
     <div class="input-group mb-3">
-        <input type="text" class="form-control" id="MA" placeholder="MA价格">
+        <input type="text" class="form-control" id="MA" placeholder="MA价格（收盘价平均值）">
         <div class="input-group-append">
             <button class="btn btn-outline-secondary" type="button" onclick="copyMA()">复制</button>
         </div>
@@ -136,7 +144,7 @@
         <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
     </div>
 
-    <h2 id="maDays"></h2>
+    <h2 id="stats" class="stats"></h2>
 
     <pre id="lastPriceDetails"></pre>
 
@@ -227,7 +235,16 @@
       .then(response => response.json())
       .then(data => {
         document.getElementById('MA').value = data.MA;
-        document.getElementById('maDays').textContent = `MA(${data.dailyLastPrice.length})`; // 设置天数标题
+
+        const totalCkb = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.ckb), 0);
+        const totalUsdt = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.usdt), 0);
+        const ratio = totalUsdt / totalCkb;
+        document.getElementById('stats').innerHTML = `
+          <span class="text-primary ma-label">MA(${data.dailyLastPrice.length})</span>
+          <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
+          <span class="text-info">总成交量(${totalCkb})</span> =
+          <span class="text-warning">${ratio.toFixed(6)}</span>`;
+
         document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
           `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
         ).join('\n');
