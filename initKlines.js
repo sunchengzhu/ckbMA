@@ -19,9 +19,11 @@ import('node-fetch').then(({ default: fetch }) => {
         console.log('Table does not exist, creating table...');
         const createTableSQL = `
           CREATE TABLE klines (
-              startTime INTEGER PRIMARY KEY,
-              date TEXT,
-              lastPrice TEXT
+            startTime INTEGER PRIMARY KEY,
+            date TEXT,
+            lastPrice TEXT,
+            ckb INTEGER,
+            usdt TEXT
           );
         `;
 
@@ -46,20 +48,22 @@ import('node-fetch').then(({ default: fetch }) => {
   fetch(url)
     .then(response => response.json())
     .then(data => {
-      const insertQuery = `INSERT OR REPLACE INTO klines (startTime, date, lastPrice) VALUES (?, ?, ?)`;
+      const insertQuery = `INSERT OR REPLACE INTO klines (startTime, date, lastPrice, ckb, usdt) VALUES (?, ?, ?, ?, ?)`;
 
       // 迭代数据并插入到数据库中
       data.forEach(kline => {
         const startTime = kline[0];
         const date = new Date(startTime).toISOString().slice(0, 10); // 只获取日期部分 YYYY-MM-DD
-        const lastPrice = kline[4].toString(); // 保留数字的原始字符串格式
+        const lastPrice = kline[4].replace(/00$/, ''); // 去除小数点后两个零
+        const ckb = parseInt(kline[5]);
+        const usdt = kline[7].replace(/00$/, '');
 
-        db.run(insertQuery, [startTime, date, lastPrice], (err) => {
+        db.run(insertQuery, [startTime, date, lastPrice, ckb, usdt], (err) => {
           if (err) {
             console.error('Error inserting/updating data', err.message);
             return;
           }
-          console.log(`Data inserted/updated successfully: ${startTime}, ${date}, ${lastPrice}`);
+          console.log(`Data inserted/updated successfully: ${startTime}, ${date}, ${lastPrice}, ${ckb}, ${usdt}`);
         });
       });
     })

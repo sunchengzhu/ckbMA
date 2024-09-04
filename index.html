@@ -227,8 +227,10 @@
       .then(response => response.json())
       .then(data => {
         document.getElementById('MA').value = data.MA;
-        document.getElementById('maDays').textContent = `MA(${data.days})`; // 设置天数标题
-        document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item => `${item.date} 收盘价: ${item.lastPrice.replace(/00$/, '')}`).join('\n');
+        document.getElementById('maDays').textContent = `MA(${data.dailyLastPrice.length})`; // 设置天数标题
+        document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
+          `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
+        ).join('\n');
       })
       .catch(error => console.error('Error fetching moving averages:', error));
   }

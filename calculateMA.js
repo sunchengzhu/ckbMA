@@ -63,7 +63,7 @@ function calculateMovingAverages(startTime1, startTime2, callback) {
 
   // 直接查询指定范围内的每天的 lastPrice
   const query = `
-        SELECT date, lastPrice
+        SELECT date, lastPrice, ckb, usdt
         FROM klines
         WHERE startTime BETWEEN ? AND ?
         ORDER BY startTime ASC
@@ -80,10 +80,15 @@ function calculateMovingAverages(startTime1, startTime2, callback) {
       const MA = sum / prices.length; // 平均值
 
       // 创建 dailyLastPrice 列表
-      const dailyLastPrice = rows.map(row => ({ date: row.date, lastPrice: row.lastPrice }));
+      const dailyLastPrice = rows.map(row => ({
+        date: row.date,
+        lastPrice: row.lastPrice,
+        ckb: row.ckb,
+        usdt: row.usdt
+      }));
 
       // 调用回调函数返回结果，包括天数
-      callback(null, { MA: MA.toFixed(6), days: prices.length, dailyLastPrice: dailyLastPrice });
+      callback(null, { MA: MA.toFixed(6), dailyLastPrice: dailyLastPrice });
     } else {
       console.log('Not enough data available for the specified range.');
       callback(new Error('Not enough data'));
