@@ -260,6 +260,10 @@
     // 使用Flatpickr实例直接设置日期
     startTime1Picker.setDate(getLastMonthTenthDate());
     startTime2Picker.setDate(getYesterdayDate());
+
+    document.getElementById('MA').value = ''; // 清空MA值
+    document.getElementById('maDays').textContent = ''; // 清空天数指示
+    document.getElementById('lastPriceDetails').textContent = ''; // 清空详细价格列表
   }
 
 </script>
