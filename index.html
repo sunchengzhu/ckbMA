@@ -166,15 +166,24 @@
     }
   }
 
-  function getLastMonthTenthDate() {
+  function getNearestTenthDate() {
+    // 从本地存储获取保存的日期
     const savedDate = localStorage.getItem('startDate');
     if (savedDate) {
-      return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');
+      return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');  // 如果存在，格式化并返回这个日期
+    }
+
+    const today = new Date();  // 获取今天的日期
+    const tenthOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 10);  // 获取本月的第10号
+
+    // 检查今天的日期是否小于10号
+    if (today.getDate() < 10) {
+      // 如果今天是10号之前，获取上个月的第10号
+      const lastMonth = dateFns.subMonths(today, 1);  // 获取上一个月
+      return dateFns.format(new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 10), 'yyyy-MM-dd');
     } else {
-      const today = new Date();
-      const lastMonth = dateFns.subMonths(today, 1); // 减少一个月
-      const tenthDayLastMonth = dateFns.setDate(lastMonth, 10); // 设置为上个月的第10天
-      return dateFns.format(tenthDayLastMonth, 'yyyy-MM-dd'); // 格式化日期
+      // 否则，返回本月的第10号
+      return dateFns.format(tenthOfThisMonth, 'yyyy-MM-dd');
     }
   }
 
@@ -188,7 +197,7 @@
     startTime1Picker = flatpickr("#startTime1", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: getLastMonthTenthDate(),
+      defaultDate: getNearestTenthDate(),
       maxDate: maxDate,
       locale: 'zh'
     });
@@ -281,7 +290,7 @@
     localStorage.removeItem('endDate');
 
     // 使用Flatpickr实例直接设置日期
-    startTime1Picker.setDate(getLastMonthTenthDate());
+    startTime1Picker.setDate(getNearestTenthDate());
     startTime2Picker.setDate(getYesterdayDate());
 
     document.getElementById('MA').value = ''; // 清空MA值
