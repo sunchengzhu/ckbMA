@@ -41,7 +41,7 @@ import('node-fetch').then(({ default: fetch }) => {
     });
   });
 
-  const limit = 1000;
+  const limit = 5;
   const url = `https://api.binance.com/api/v3/klines?symbol=CKBUSDT&interval=1d&limit=${limit}`;
 
   // 获取数据并插入
