@@ -165,7 +165,9 @@
     if (savedDate) {
       return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');
     } else {
-      const today = new Date();
+      // 获取当前UTC日期
+      const now = new Date();
+      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
       const yesterday = dateFns.subDays(today, 1); // 减少一天
       return dateFns.format(yesterday, 'yyyy-MM-dd'); // 格式化日期
     }
@@ -178,7 +180,8 @@
       return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');  // 如果存在，格式化并返回这个日期
     }
 
-    const today = new Date();  // 获取今天的日期
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
     const tenthOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 10);  // 获取本月的第10号
 
     // 检查今天的日期是否小于10号
@@ -260,7 +263,7 @@
           <span class="text-info">总天数(${data.dailyLastPrice.length})</span> =
           <span class="text-warning">${data.MA}</span>`;
 
-         document.getElementById('stats').innerHTML = `
+        document.getElementById('stats').innerHTML = `
           <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
           <span class="text-info">总成交量(${totalCkb})</span> =
           <span class="text-warning">${ratio.toFixed(6)}</span>`;
@@ -304,8 +307,10 @@
     startTime1Picker.setDate(getNearestTenthDate());
     startTime2Picker.setDate(getYesterdayDate());
 
-    document.getElementById('MA').value = ''; // 清空MA值
+    document.getElementById('usdtInput').value = '';
     document.getElementById('ckbInput').value = '';
+    document.getElementById('resultOutput').value = '';
+    document.getElementById('MA').value = ''; // 清空MA值
     document.getElementById('maDays').textContent = ''; // 清空天数指示
     document.getElementById('lastPriceDetails').textContent = ''; // 清空详细价格列表
   }
