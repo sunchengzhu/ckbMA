@@ -1,36 +1,51 @@
-const { Client } = require('ssh2');
-const fs = require('fs');
+require('dotenv').config();
+const qiniu = require('qiniu');
 const path = require('path');
 
-const config = {
-  host: '101.43.8.77',
-  port: 22,
-  username: 'ubuntu',
-  privateKey: fs.readFileSync(path.join(__dirname, 'web3zhu.pem')),
-  // password: 'your-password' // 如果不使用私钥，则可以使用密码
+// 从环境变量获取密钥
+const accessKey = process.env.AK;
+const secretKey = process.env.SK;
+const bucket = 'acceptance-test';
+
+// 获取命令行中的文件路径参数
+const localFilePath = process.argv[2];
+if (!localFilePath) {
+  console.error('Error: No file path provided.');
+  process.exit(1);
+}
+
+const key = `replay/${path.basename(localFilePath)}`;  // 在上传后的文件名前加上'replay/'
+
+// 配置上传策略允许覆盖同名文件
+const options = {
+  scope: `${bucket}:${key}`  // 允许覆盖同名文件
 };
+const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
+const putPolicy = new qiniu.rs.PutPolicy(options);
+const uploadToken = putPolicy.uploadToken(mac);
 
-const localFilePath = path.join(__dirname, 'price.db');
-const remoteFilePath = '/var/www/ckbMA/price.db';
+// 七牛云上传配置
+const config = new qiniu.conf.Config();
+config.zone = qiniu.zone.Zone_as0;  // 根据你的存储区域选择对应的zone
 
-const conn = new Client();
+const formUploader = new qiniu.form_up.FormUploader(config);
+const putExtra = new qiniu.form_up.PutExtra();
 
-conn.on('ready', () => {
-  console.log('Client :: ready');
-  conn.sftp((err, sftp) => {
-    if (err) throw err;
-
-    // 上传文件，替换远程文件
-    sftp.fastPut(localFilePath, remoteFilePath, (err) => {
-      if (err) {
-        console.error('Upload Error:', err);
-      } else {
-        console.log('Upload successful to:', remoteFilePath);
-      }
-      conn.end(); // 关闭连接
-    });
+// 文件上传函数
+function uploadFile() {
+  console.log(`Uploading file: ${localFilePath}`);
+  formUploader.putFile(uploadToken, key, localFilePath, putExtra, (err, body, info) => {
+    if (err) {
+      console.error('Upload Error:', err);
+      return;
+    }
+    if (info.statusCode === 200) {
+      console.log("Upload successful:", body);
+    } else {
+      console.log("Failed to upload:", info);
+    }
   });
-}).on('error', (err) => {
-  console.error('Connection Error:', err);
-}).connect(config);
+}
 
+// 调用上传
+uploadFile();
