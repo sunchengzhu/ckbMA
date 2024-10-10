@@ -240,8 +240,8 @@
     localStorage.setItem('startDate', startTimestamp);
     localStorage.setItem('endDate', endTimestamp);
 
-    fetch('http://localhost:3000/calculateMA', {
-    // fetch('https://web3zhu.cn/calculateMA', {
+    // fetch('http://localhost:3000/calculateMA', {
+    fetch('https://web3zhu.cn/calculateMA', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ startTime1, startTime2 })
