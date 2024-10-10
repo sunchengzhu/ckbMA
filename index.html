@@ -177,7 +177,7 @@
     const tenthOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 10);  // 获取本月的第10号
 
     // 检查今天的日期是否小于10号
-    if (today.getDate() < 10) {
+    if (today.getDate() <= 10) {
       // 如果今天是10号之前，获取上个月的第10号
       const lastMonth = dateFns.subMonths(today, 1);  // 获取上一个月
       return dateFns.format(new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 10), 'yyyy-MM-dd');
@@ -244,6 +244,7 @@
       .then(response => response.json())
       .then(data => {
         document.getElementById('MA').value = data.MA;
+        document.getElementById('ckbInput').value = data.MA;
 
         const totalCkb = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.ckb), 0);
         const totalUsdt = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.usdt), 0);
