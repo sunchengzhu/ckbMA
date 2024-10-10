@@ -60,6 +60,7 @@ app.post('/calculateMA', (req, res) => {
 function calculateMovingAverages(startTime1, startTime2, callback) {
   const minTime = Math.min(startTime1, startTime2);
   const maxTime = Math.max(startTime1, startTime2);
+  const days = getDaysBetweenTimestamps(minTime, maxTime);
 
   // 直接查询指定范围内的每天的 lastPrice
   const query = `
@@ -88,7 +89,7 @@ function calculateMovingAverages(startTime1, startTime2, callback) {
       }));
 
       // 调用回调函数返回结果，包括天数
-      callback(null, { MA: MA.toFixed(6), dailyLastPrice: dailyLastPrice });
+      callback(null, { MA: MA.toFixed(6), sum: sum.toFixed(6), days: days, dailyLastPrice: dailyLastPrice });
     } else {
       console.log('Not enough data available for the specified range.');
       callback(new Error('Not enough data'));
@@ -99,6 +100,14 @@ function calculateMovingAverages(startTime1, startTime2, callback) {
 
 function timestamp() {
   return moment().tz('Asia/Shanghai').format('YYYY-MM-DD HH:mm:ss');
+}
+
+function getDaysBetweenTimestamps(minTime, maxTime) {
+  // 将时间戳转换为 UTC 日期
+  const startDate = moment(minTime).utc();
+  const endDate = moment(maxTime).utc();
+  // 计算两个日期之间的完整天数
+  return endDate.diff(startDate, 'days') + 1;
 }
 
 app.listen(PORT, () => {

@@ -107,6 +107,10 @@
             margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
         }
 
+        .ma-stats span {
+            font-size: 2rem; /* 调整字体大小 */
+        }
+
         .stats span {
             font-size: 1rem; /* 调整字体大小 */
         }
@@ -144,7 +148,8 @@
         <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
     </div>
 
-    <h2 id="stats" class="stats"></h2>
+    <h2 id="ma-stats" class="ma-stats"></h2>
+    <h3 id="stats" class="stats"></h3>
 
     <pre id="lastPriceDetails"></pre>
 
@@ -235,8 +240,8 @@
     localStorage.setItem('startDate', startTimestamp);
     localStorage.setItem('endDate', endTimestamp);
 
-    // fetch('http://localhost:3000/calculateMA', {
-    fetch('https://web3zhu.cn/calculateMA', {
+    fetch('http://localhost:3000/calculateMA', {
+    // fetch('https://web3zhu.cn/calculateMA', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ startTime1, startTime2 })
@@ -249,8 +254,13 @@
         const totalCkb = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.ckb), 0);
         const totalUsdt = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.usdt), 0);
         const ratio = totalUsdt / totalCkb;
-        document.getElementById('stats').innerHTML = `
-          <span class="text-primary ma-label">MA(${data.dailyLastPrice.length})</span>
+        document.getElementById('ma-stats').innerHTML = `
+          <span class="text-primary ma-label">MA(${data.days})</span>
+          <span class="text-success">总收盘价(${data.sum})</span> /
+          <span class="text-info">总天数(${data.dailyLastPrice.length})</span> =
+          <span class="text-warning">${data.MA}</span>`;
+
+         document.getElementById('stats').innerHTML = `
           <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
           <span class="text-info">总成交量(${totalCkb})</span> =
           <span class="text-warning">${ratio.toFixed(6)}</span>`;
@@ -295,6 +305,7 @@
     startTime2Picker.setDate(getYesterdayDate());
 
     document.getElementById('MA').value = ''; // 清空MA值
+    document.getElementById('ckbInput').value = '';
     document.getElementById('maDays').textContent = ''; // 清空天数指示
     document.getElementById('lastPriceDetails').textContent = ''; // 清空详细价格列表
   }
