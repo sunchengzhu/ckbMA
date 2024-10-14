@@ -26,7 +26,7 @@ const uploadToken = putPolicy.uploadToken(mac);
 
 // 七牛云上传配置
 const config = new qiniu.conf.Config();
-config.zone = qiniu.zone.Zone_as0;  // 根据你的存储区域选择对应的zone
+config.regionsProvider = qiniu.httpc.Region.fromRegionId('as0'); // 根据你的存储区域选择对应的zone
 
 const formUploader = new qiniu.form_up.FormUploader(config);
 const putExtra = new qiniu.form_up.PutExtra();
