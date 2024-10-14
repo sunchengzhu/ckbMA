@@ -30,6 +30,7 @@ config.zone = qiniu.zone.Zone_as0;  // 根据你的存储区域选择对应的zo
 
 const formUploader = new qiniu.form_up.FormUploader(config);
 const putExtra = new qiniu.form_up.PutExtra();
+putExtra.version = 'v2';
 
 // 文件上传函数
 function uploadFile() {
