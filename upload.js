@@ -32,10 +32,10 @@ const resumeUploader = new qiniu.resume_up.ResumeUploader(config);
 const putExtra = new qiniu.form_up.PutExtra();
 // 文件分片上传（断点续传）
 putExtra.version = 'v2';
-putExtra.progressCallback = function(uploadBytes, totalBytes) {
-  //上传进度
+// 上传进度
+putExtra.progressCallback = (uploadedBytes, totalBytes) => {
   console.log(`Uploaded: ${uploadedBytes} / ${totalBytes} (${(uploadedBytes / totalBytes * 100).toFixed(2)}%)`);
-}
+};
 
 // 文件上传函数
 function uploadFile() {
