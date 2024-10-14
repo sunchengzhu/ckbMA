@@ -30,7 +30,12 @@ config.regionsProvider = qiniu.httpc.Region.fromRegionId('as0'); // 根据你的
 
 const resumeUploader = new qiniu.resume_up.ResumeUploader(config);
 const putExtra = new qiniu.form_up.PutExtra();
+// 文件分片上传（断点续传）
 putExtra.version = 'v2';
+putExtra.progressCallback = function(uploadBytes, totalBytes) {
+  //上传进度
+  console.log("progress:" + uploadBytes*100/totalBytes+'%' );
+}
 
 // 文件上传函数
 function uploadFile() {
