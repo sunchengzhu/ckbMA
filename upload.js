@@ -28,14 +28,14 @@ const uploadToken = putPolicy.uploadToken(mac);
 const config = new qiniu.conf.Config();
 config.regionsProvider = qiniu.httpc.Region.fromRegionId('as0'); // 根据你的存储区域选择对应的zone
 
-const formUploader = new qiniu.form_up.FormUploader(config);
+const resumeUploader = new qiniu.resume_up.ResumeUploader(config);
 const putExtra = new qiniu.form_up.PutExtra();
 putExtra.version = 'v2';
 
 // 文件上传函数
 function uploadFile() {
   console.log(`Uploading file: ${localFilePath}`);
-  formUploader.putFile(uploadToken, key, localFilePath, putExtra, (err, body, info) => {
+  resumeUploader.putFile(uploadToken, key, localFilePath, putExtra, (err, body, info) => {
     if (err) {
       console.error('Upload Error:', err);
       return;
