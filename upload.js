@@ -34,7 +34,7 @@ const putExtra = new qiniu.form_up.PutExtra();
 putExtra.version = 'v2';
 putExtra.progressCallback = function(uploadBytes, totalBytes) {
   //上传进度
-  console.log("progress:" + uploadBytes*100/totalBytes+'%' );
+  console.log(`Uploaded: ${uploadedBytes} / ${totalBytes} (${(uploadedBytes / totalBytes * 100).toFixed(2)}%)`);
 }
 
 // 文件上传函数
