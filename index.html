@@ -6,10 +6,16 @@
     <title>移动平均价计算器</title>
     <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/flatpickr/flatpickr.min.css">
+    <script src="assets/flatpickr/plugins/monthSelect/index.js"></script>
     <script src="assets/flatpickr/flatpickr.min.js"></script>
     <script src="assets/flatpickr/l10n/zh.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <style>
+        .flatpickr-monthSelect-month {
+            margin-right: 8px; /* 右边距为8px */
+            white-space: nowrap; /* 防止月份名称换行 */
+        }
+
         body {
             font-family: Arial, sans-serif;
             padding: 20px;
@@ -98,11 +104,6 @@
             margin-right: 40px;
         }
 
-        /* 第四个元素与第五个元素之间无间隔 */
-        .controls-half > :nth-child(4) {
-            margin-right: 0;
-        }
-
         .controls-half > * {
             margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
         }
@@ -125,12 +126,13 @@
 <div class="container">
     <h1>CKB移动平均线（MA）</h1>
     <div class="controls">
+        <label for="monthPicker">选择月份:</label>
+        <input type="text" class="form-control" id="monthPicker" placeholder="Select month">
         <label for="startTime1">开始日期:</label>
         <input type="text" class="form-control" id="startTime1" placeholder="Select start date">
         <label for="startTime2">结束日期:</label>
         <input type="text" class="form-control" id="startTime2" placeholder="Select end date">
         <button onclick="fetchMovingAverages()" class="btn btn-primary">计算</button>
-        <button onclick="resetDates()" class="btn btn-secondary">重置日期</button>
     </div>
 
     <div class="input-group mb-3">
@@ -160,77 +162,44 @@
 </div>
 
 <script>
-  function getYesterdayDate() {
-    const savedDate = localStorage.getItem('endDate');
-    if (savedDate) {
-      return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');
-    } else {
-      // 获取当前UTC日期
-      const now = new Date();
-      const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-      const yesterday = dateFns.subDays(today, 1); // 减少一天
-      return dateFns.format(yesterday, 'yyyy-MM-dd'); // 格式化日期
-    }
-  }
-
-  function getNearestTenthDate() {
-    // 从本地存储获取保存的日期
-    const savedDate = localStorage.getItem('startDate');
-    if (savedDate) {
-      return dateFns.format(new Date(parseInt(savedDate)), 'yyyy-MM-dd');  // 如果存在，格式化并返回这个日期
-    }
-
-    const now = new Date();
-    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-    const tenthOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 10);  // 获取本月的第10号
-
-    // 检查今天的日期是否小于10号
-    if (today.getDate() <= 10) {
-      // 如果今天是10号之前，获取上个月的第10号
-      const lastMonth = dateFns.subMonths(today, 1);  // 获取上一个月
-      return dateFns.format(new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 10), 'yyyy-MM-dd');
-    } else {
-      // 否则，返回本月的第10号
-      return dateFns.format(tenthOfThisMonth, 'yyyy-MM-dd');
-    }
-  }
-
-  const maxDate = new Date().toISOString().slice(0, 10);
-
-  let startTime1Picker;
-  let startTime2Picker;
-
   document.addEventListener('DOMContentLoaded', function () {
-    // 初始化Flatpickr实例
-    startTime1Picker = flatpickr("#startTime1", {
+    flatpickr.localize(flatpickr.l10ns.zh); // 应用中文本地化设置
+
+    const today = new Date();
+    const currentDay = today.getDate();
+    let selectedMonth = today;
+
+    if (currentDay <= 9) {
+      selectedMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    }
+
+    flatpickr("#monthPicker", {
+      plugins: [new monthSelectPlugin({
+        dateFormat: "Y-m",
+        altFormat: "Y年m月",
+        locale: 'zh'
+      })],
+      defaultDate: selectedMonth,
+      onChange: function (selectedDates) {
+        const date = selectedDates[0];
+        startTime1Picker.setDate(new Date(date.getFullYear(), date.getMonth(), 10));
+        startTime2Picker.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 9));
+      }
+    });
+
+    const startTime1Picker = flatpickr("#startTime1", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: getNearestTenthDate(),
-      maxDate: maxDate,
+      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 10),
       locale: 'zh'
     });
 
-    startTime2Picker = flatpickr("#startTime2", {
+    const startTime2Picker = flatpickr("#startTime2", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: getYesterdayDate(),
-      maxDate: maxDate,
+      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 9),
       locale: 'zh'
     });
-
-    // 从localStorage读取并设置日期
-    const savedStartDate = localStorage.getItem('startDate');
-    const savedEndDate = localStorage.getItem('endDate');
-
-    if (savedStartDate) {
-      const formattedStartDate = dateFns.format(new Date(parseInt(savedStartDate)), 'yyyy-MM-dd');
-      startTime1Picker.setDate(formattedStartDate);
-    }
-
-    if (savedEndDate) {
-      const formattedEndDate = dateFns.format(new Date(parseInt(savedEndDate)), 'yyyy-MM-dd');
-      startTime2Picker.setDate(formattedEndDate);
-    }
   });
 
   function fetchMovingAverages() {
@@ -297,22 +266,6 @@
     navigator.clipboard.writeText(result)
       .then(() => console.log('Result copied to clipboard!'))
       .catch(err => console.error('Failed to copy result:', err));
-  }
-
-  function resetDates() {
-    localStorage.removeItem('startDate');
-    localStorage.removeItem('endDate');
-
-    // 使用Flatpickr实例直接设置日期
-    startTime1Picker.setDate(getNearestTenthDate());
-    startTime2Picker.setDate(getYesterdayDate());
-
-    document.getElementById('usdtInput').value = '';
-    document.getElementById('ckbInput').value = '';
-    document.getElementById('resultOutput').value = '';
-    document.getElementById('MA').value = ''; // 清空MA值
-    document.getElementById('maDays').textContent = ''; // 清空天数指示
-    document.getElementById('lastPriceDetails').textContent = ''; // 清空详细价格列表
   }
 
 </script>
