@@ -134,7 +134,8 @@ node calculateMA.js
 ```bash
 nohup node calculateMA.js > calculateMA.log 2>&1 &
 ```
-按住 `Control + A` 再按 `D`，将会话分离
+
+**提示**：如果使用 screen 或 tmux 会话管理，可以按 `Control + A` 再按 `D` 来分离会话。
 
 ### 访问前端
 在浏览器中打开 `index.html` 或部署到 Web 服务器。
@@ -152,7 +153,7 @@ nohup node calculateMA.js > calculateMA.log 2>&1 &
 - 开发环境：`http://localhost:3000/calculateMA`
 - 生产环境：`https://web3zhu.cn/calculateMA`
 
-修改前端 `index.html` 第 216 行以切换环境。
+修改前端 `index.html` 中 `fetchMovingAverages()` 函数内的 API 地址以切换环境（约第 249 行）。
 
 ## 技术栈
 
