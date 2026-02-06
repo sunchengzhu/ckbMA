@@ -17,16 +17,29 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
             padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px 36px;
+            margin-top: 20px;
         }
 
         .container h1 {
-            margin-bottom: 30px; /* 增加30px的底部边距 */
+            margin-bottom: 30px;
+            font-weight: 600;
+            color: #2c3e50;
         }
 
         .container h2 {
-            margin-top: 30px; /* 增加30px的底部边距 */
+            margin-top: 30px;
         }
 
         .controls {
@@ -40,11 +53,40 @@
 
         .controls label {
             white-space: nowrap;
+            font-weight: 500;
+            color: #555;
         }
 
         .controls input[type="text"] {
             flex: 1;
             min-width: 120px;
+        }
+
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dcdfe6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.15);
+        }
+
+        .btn-primary {
+            border-radius: 8px;
+            padding: 6px 20px;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.15);
+            transition: box-shadow 0.2s;
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+        }
+
+        .btn-outline-secondary {
+            border-radius: 8px;
         }
 
         .input-group {
@@ -57,17 +99,20 @@
             justify-content: center;
             gap: 40px;
             text-align: center;
-            margin-top: 20px;
-            padding: 10px 0;
-            font-size: 16px;
+            margin-top: 28px;
+            padding: 14px 0;
+            font-size: 15px;
+            border-top: 1px solid #ebeef5;
         }
 
         .link-container a {
-            color: #007bff;
+            color: #409eff;
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .link-container a:hover {
+            color: #66b1ff;
             text-decoration: underline;
         }
 
@@ -75,18 +120,17 @@
             width: 100%;
             margin-top: 50px;
             margin-right: auto;
-            display: flex; /* 使用Flex布局保持内部元素在一行 */
-            flex-wrap: wrap; /* 允许内容在必要时进行换行 */
-            /*gap: 10px;         !* 元素之间的间距 *!*/
-            align-items: center; /* 垂直居中对齐 */
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
         }
 
         .controls-half .form-control {
-            flex-grow: 1; /* 确保输入框可以伸缩填充空余空间 */
+            flex-grow: 1;
         }
 
         .controls-half button {
-            flex-shrink: 0; /* 防止按钮缩小 */
+            flex-shrink: 0;
         }
 
         .controls-half input[type="text"] {
@@ -105,19 +149,65 @@
         }
 
         .controls-half > * {
-            margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
+            margin-bottom: 10px;
         }
 
         .ma-stats span {
-            font-size: 2rem; /* 调整字体大小 */
+            font-size: 2rem;
+        }
+
+        .stats {
+            color: #999;
         }
 
         .stats span {
-            font-size: 1rem; /* 调整字体大小 */
+            font-size: 0.95rem;
+            color: #999;
         }
 
         .ma-label {
-            margin-right: 20px; /* 增加更大的右边距 */
+            margin-right: 20px;
+        }
+
+        /* flatpickr 月份选择器美化 */
+        .flatpickr-input {
+            cursor: pointer;
+        }
+
+        .flatpickr-calendar {
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: none;
+        }
+
+        .flatpickr-months {
+            border-radius: 10px 10px 0 0;
+        }
+
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background: #409eff;
+            border-color: #409eff;
+        }
+
+        .flatpickr-day:hover {
+            background: #ecf5ff;
+        }
+
+        .flatpickr-monthSelect-month.selected {
+            background: #409eff;
+        }
+
+        #lastPriceDetails {
+            background: #fafbfc;
+            border: 1px solid #ebeef5;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #606266;
+            line-height: 1.7;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
     </style>
@@ -233,9 +323,9 @@
           <span class="text-warning">${data.MA}</span>`;
 
         document.getElementById('stats').innerHTML = `
-          <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
-          <span class="text-info">总成交量(${totalCkb})</span> =
-          <span class="text-warning">${ratio.toFixed(6)}</span>`;
+          <span>总成交额(${parseInt(totalUsdt)})</span> /
+          <span>总成交量(${totalCkb})</span> =
+          <span>${ratio.toFixed(6)}</span>`;
 
         document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
           `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
