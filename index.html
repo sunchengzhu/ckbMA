@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>移动平均价计算器</title>
+    <!-- CSS 框架和插件 -->
     <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/flatpickr/flatpickr.min.css">
+    <!-- JavaScript 库 -->
     <script src="assets/flatpickr/plugins/monthSelect/index.js"></script>
     <script src="assets/flatpickr/flatpickr.min.js"></script>
-    <script src="assets/flatpickr/l10n/zh.js"></script>
+    <script src="assets/flatpickr/l10n/zh.js"></script>  <!-- 中文本地化 -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <style>
         .flatpickr-monthSelect-month {
@@ -162,6 +164,19 @@
 </div>
 
 <script>
+  /**
+   * CKB 移动平均价格计算器 - 前端脚本
+   * 
+   * 主要功能：
+   * 1. 日期选择器初始化（月份选择器 + 自定义日期范围）
+   * 2. 调用后端 API 计算 MA
+   * 3. 显示计算结果和详细统计数据
+   * 4. USDT ↔ CKB 价格转换工具
+   */
+
+  // ============================================
+  // 页面加载时初始化日期选择器
+  // ============================================
   document.addEventListener('DOMContentLoaded', function () {
     flatpickr.localize(flatpickr.l10ns.zh); // 应用中文本地化设置
 
@@ -169,24 +184,30 @@
     const currentDay = today.getDate();
     let selectedMonth = today;
 
+    // 智能默认月份选择逻辑：
+    // 如果当前日期 <= 10 号，默认选择上个月
+    // 原因：每月结算通常在 10 号，10 号前应查看上个月的数据
     if (currentDay <= 10) {
       selectedMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
     }
 
+    // 月份选择器：快速选择整月（自动设置开始和结束日期）
     flatpickr("#monthPicker", {
       plugins: [new monthSelectPlugin({
-        dateFormat: "Y-m",
-        altFormat: "Y年m月",
-        locale: 'zh'
+        dateFormat: "Y-m",        // 内部格式
+        altFormat: "Y年m月",      // 显示格式
+        locale: 'zh'              // 中文
       })],
       defaultDate: selectedMonth,
+      // 月份改变时，自动设置开始日期（10号）和结束日期（次月9号）
       onChange: function (selectedDates) {
         const date = selectedDates[0];
-        startTime1Picker.setDate(new Date(date.getFullYear(), date.getMonth(), 10));
-        startTime2Picker.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 9));
+        startTime1Picker.setDate(new Date(date.getFullYear(), date.getMonth(), 10));      // 本月10号
+        startTime2Picker.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 9));   // 次月9号
       }
     });
 
+    // 开始日期选择器：默认为所选月份的 10 号
     const startTime1Picker = flatpickr("#startTime1", {
       enableTime: false,
       dateFormat: "Y-m-d",
@@ -194,6 +215,7 @@
       locale: 'zh'
     });
 
+    // 结束日期选择器：默认为所选月份下一个月的 9 号
     const startTime2Picker = flatpickr("#startTime2", {
       enableTime: false,
       dateFormat: "Y-m-d",
@@ -202,41 +224,58 @@
     });
   });
 
+  /**
+   * 调用后端 API 计算移动平均价格
+   * 
+   * 流程：
+   * 1. 获取用户选择的开始和结束日期
+   * 2. 转换为时间戳并发送 POST 请求到后端
+   * 3. 接收并解析返回的 MA 数据
+   * 4. 更新页面显示（MA 值、统计信息、每日详情）
+   */
   function fetchMovingAverages() {
+    // 将日期字符串转换为 UTC 时间戳（毫秒）
     const startTime1 = new Date(document.getElementById('startTime1').value + "T00:00:00Z").getTime();
     const startTime2 = new Date(document.getElementById('startTime2').value + "T00:00:00Z").getTime();
 
-    // 保存日期到LocalStorage
+    // 保存日期到 LocalStorage（用于页面刷新后恢复选择）
     const startTimestamp = new Date(startTime1).getTime();
     const endTimestamp = new Date(startTime2).getTime();
     localStorage.setItem('startDate', startTimestamp);
     localStorage.setItem('endDate', endTimestamp);
 
-    // fetch('http://localhost:3000/calculateMA', {
-    fetch('https://web3zhu.cn/calculateMA', {
+    // 发送 POST 请求到后端 API
+    // fetch('http://localhost:3000/calculateMA', {  // 本地开发
+    fetch('https://web3zhu.cn/calculateMA', {  // 生产环境
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ startTime1, startTime2 })
     })
       .then(response => response.json())
       .then(data => {
+        // 显示计算出的 MA 价格
         document.getElementById('MA').value = data.MA;
-        document.getElementById('ckbInput').value = data.MA;
+        document.getElementById('ckbInput').value = data.MA;  // 同时更新价格转换工具的默认值
 
+        // 计算总成交量和总成交额
         const totalCkb = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.ckb), 0);
         const totalUsdt = data.dailyLastPrice.reduce((sum, item) => sum + parseFloat(item.usdt), 0);
-        const ratio = totalUsdt / totalCkb;
+        const ratio = totalUsdt / totalCkb;  // 平均价格（成交额/成交量）
+        
+        // 显示 MA 统计信息
         document.getElementById('ma-stats').innerHTML = `
           <span class="text-primary ma-label">MA(${data.days})</span>
           <span class="text-success">总收盘价(${data.sum})</span> /
           <span class="text-info">总天数(${data.dailyLastPrice.length})</span> =
           <span class="text-warning">${data.MA}</span>`;
 
+        // 显示成交量和成交额统计
         document.getElementById('stats').innerHTML = `
           <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
           <span class="text-info">总成交量(${totalCkb})</span> =
           <span class="text-warning">${ratio.toFixed(6)}</span>`;
 
+        // 显示每日详细数据（日期、收盘价、成交量、成交额）
         document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
           `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
         ).join('\n');
@@ -244,6 +283,10 @@
       .catch(error => console.error('Error fetching moving averages:', error));
   }
 
+  /**
+   * 复制 MA 价格到剪贴板
+   * 方便用户快速复制计算结果
+   */
   function copyMA() {
     const MA = document.getElementById('MA').value; // 获取需要复制的文本值
     navigator.clipboard.writeText(MA) // 将文本写入剪贴板
@@ -255,12 +298,23 @@
       });
   }
 
+  /**
+   * 价格转换工具：计算 CKB 数量
+   * 
+   * 公式：CKB 数量 = USDT 金额 / CKB 单价
+   * 
+   * 使用场景：
+   * - 输入 USDT 金额和 CKB 价格，计算可购买的 CKB 数量
+   */
   function calculateResult() {
     const usdtPrice = parseFloat(document.getElementById('usdtInput').value);
     const ckbPrice = parseFloat(document.getElementById('ckbInput').value);
-    document.getElementById('resultOutput').value = (usdtPrice / ckbPrice).toFixed(8);
+    document.getElementById('resultOutput').value = (usdtPrice / ckbPrice).toFixed(8);  // 保留8位小数
   }
 
+  /**
+   * 复制转换结果到剪贴板
+   */
   function copyResult() {
     const result = document.getElementById('resultOutput').value;
     navigator.clipboard.writeText(result)
