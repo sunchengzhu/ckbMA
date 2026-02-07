@@ -17,7 +17,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1050px;
             background: #fff;
             border-radius: 12px;
             box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
@@ -29,6 +29,7 @@
             margin-bottom: 28px;
             font-weight: 600;
             color: #2c3e50;
+            font-size: 24px;
         }
 
         .container h2 {
@@ -38,6 +39,45 @@
         /* --- 月份选择器 --- */
         .month-picker-section {
             margin-bottom: 24px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .month-picker-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            color: #303133;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .month-picker-trigger:hover {
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .month-picker-popup {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: #fff;
+            border: 1px solid #ebeef5;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            padding: 16px 18px;
+            z-index: 20;
+            min-width: 520px;
+            display: none;
+        }
+
+        .month-picker-popup.open {
+            display: block;
         }
 
         .month-picker-section label {
@@ -85,9 +125,9 @@
 
         .month-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
-            max-width: 360px;
+            max-width: 480px;
         }
 
         .month-grid .month-btn {
@@ -128,12 +168,19 @@
         }
 
         /* --- 日期与计算控制行 --- */
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: nowrap;
+        }
+
         .date-row {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         .date-row label {
@@ -185,12 +232,12 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 0;
+            flex-shrink: 0;
         }
 
         .ma-result-row .form-control {
-            flex: 1;
-            max-width: 260px;
+            width: 220px;
         }
 
         /* --- 换算区域 --- */
@@ -200,25 +247,40 @@
             border-radius: 10px;
             padding: 20px 24px;
             margin-top: 20px;
+            display: inline-block;
         }
 
         .calc-section-title {
             font-size: 14px;
             font-weight: 500;
             color: #909399;
-            margin-bottom: 14px;
+            margin-bottom: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .calc-section-inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
         }
 
         .calc-row {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            flex: 1;
         }
 
         .calc-row .form-control {
             flex: 1;
-            min-width: 120px;
+            min-width: 80px;
+            max-width: 200px;
+        }
+
+        .calc-row .form-control.calc-input-short {
+            max-width: 160px;
         }
 
         .calc-row .calc-sep {
@@ -228,21 +290,45 @@
         }
 
         /* --- 统计 --- */
+        .stats-row {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            flex-wrap: nowrap;
+        }
+
+        .ma-stats {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
         .ma-stats span {
-            font-size: 2rem;
+            font-size: 1rem;
+        }
+
+        .stats-divider {
+            width: 1px;
+            height: 28px;
+            background: #dcdfe6;
+            margin: 0 20px;
+            flex-shrink: 0;
         }
 
         .stats {
             color: #999;
+            margin: 0;
+            flex-shrink: 0;
         }
 
         .stats span {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #999;
         }
 
         .ma-label {
-            margin-right: 20px;
+            margin-right: 12px;
         }
 
         /* --- 明细 --- */
@@ -254,8 +340,9 @@
             font-size: 13px;
             color: #606266;
             line-height: 1.7;
-            max-height: 400px;
+            max-height: 720px;
             overflow-y: auto;
+            display: inline-block;
         }
 
         /* --- 底部链接 --- */
@@ -313,47 +400,58 @@
 
     <!-- 月份选择器：4行3列 -->
     <div class="month-picker-section">
-        <label>选择月份</label>
-        <div class="year-nav">
-            <button type="button" id="prevYear" title="上一年">&#8249;</button>
-            <span id="yearDisplay"></span>
-            <button type="button" id="nextYear" title="下一年">&#8250;</button>
+        <button type="button" id="monthPickerTrigger" class="month-picker-trigger">
+            <span id="monthPickerLabel"></span>
+            <span>▾</span>
+        </button>
+        <div id="monthPickerPopup" class="month-picker-popup">
+            <div class="year-nav">
+                <button type="button" id="prevYear" title="上一年">&#8249;</button>
+                <span id="yearDisplay"></span>
+                <button type="button" id="nextYear" title="下一年">&#8250;</button>
+            </div>
+            <div class="month-grid" id="monthGrid"></div>
         </div>
-        <div class="month-grid" id="monthGrid"></div>
     </div>
 
-    <!-- 日期范围 + 计算按钮 -->
-    <div class="date-row">
-        <label for="startTime1">开始日期:</label>
-        <input type="text" class="form-control" id="startTime1" placeholder="选择开始日期">
-        <label for="startTime2">结束日期:</label>
-        <input type="text" class="form-control" id="startTime2" placeholder="选择结束日期">
-        <button onclick="fetchMovingAverages()" class="btn btn-primary">计算MA</button>
-    </div>
+    <!-- 日期范围 + 计算按钮 + MA结果同一行 -->
+    <div class="top-controls">
+        <div class="date-row">
+            <label for="startTime1">开始日期:</label>
+            <input type="text" class="form-control" id="startTime1" placeholder="选择开始日期">
+            <label for="startTime2">结束日期:</label>
+            <input type="text" class="form-control" id="startTime2" placeholder="选择结束日期">
+            <button onclick="fetchMovingAverages()" class="btn btn-primary">计算MA</button>
+        </div>
 
-    <!-- MA结果 -->
-    <div class="ma-result-row">
-        <input type="text" class="form-control" id="MA" placeholder="MA价格（收盘价平均值）" readonly>
-        <button class="btn btn-outline-secondary" type="button" onclick="copyMA()">复制</button>
+        <div class="ma-result-row">
+            <input type="text" class="form-control" id="MA" placeholder="MA价格（收盘价平均值）" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyMA()">复制</button>
+        </div>
     </div>
 
     <!-- USDT/CKB 换算区域 -->
     <div class="calc-section">
+        <div class="calc-section-inner">
         <div class="calc-section-title">USDT → CKB 换算</div>
         <div class="calc-row">
-            <input type="text" class="form-control" id="usdtInput" placeholder="USDT数量">
+            <input type="text" class="form-control calc-input-short" id="usdtInput" placeholder="USDT数量" onkeydown="if(event.key==='Enter')calculateResult()">
             <span class="calc-sep">÷</span>
-            <input type="text" class="form-control" id="ckbInput" placeholder="CKB价格">
+            <input type="text" class="form-control calc-input-short" id="ckbInput" placeholder="CKB价格" onkeydown="if(event.key==='Enter')calculateResult()">
             <button onclick="calculateResult()" class="btn btn-primary">=</button>
-            <input type="text" class="form-control" id="resultOutput" placeholder="CKB数量" readonly>
+            <input type="text" class="form-control" id="resultOutput" placeholder="CKB数量" readonly style="width:220px;flex:none">
             <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
+        </div>
         </div>
     </div>
 
-    <h2 id="ma-stats" class="ma-stats"></h2>
-    <h3 id="stats" class="stats"></h3>
+    <div class="stats-row" id="statsRow" style="display:none">
+        <div id="ma-stats" class="ma-stats"></div>
+        <div class="stats-divider"></div>
+        <div id="stats" class="stats"></div>
+    </div>
 
-    <pre id="lastPriceDetails"></pre>
+    <pre id="lastPriceDetails" style="display:none"></pre>
 
     <div class="link-container">
         <a href="https://www.binance.com/zh-CN/trade/CKB_USDT" target="_blank">CKB/USDT 交易页</a>
@@ -367,39 +465,61 @@
 
     const today = new Date();
     const currentDay = today.getDate();
+    const currentHour = today.getHours();
     const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月',
                          '7月', '8月', '9月', '10月', '11月', '12月'];
 
-    let selectedMonth = today;
-    if (currentDay <= 10) {
-      selectedMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    // 11号8点之前：默认上月，上月及之前可选
+    // 11号8点之后（含11号8点整）：默认当月，当月及之前可选
+    let maxSelectableMonth;
+    if (currentDay < 11 || (currentDay === 11 && currentHour < 8)) {
+      maxSelectableMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    } else {
+      maxSelectableMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     }
 
-    let pickerYear = selectedMonth.getFullYear();
-    let pickerMonth = selectedMonth.getMonth(); // 0-based
+    const maxYear = maxSelectableMonth.getFullYear();
+    const maxMonthIndex = maxSelectableMonth.getMonth();
+
+        let pickerYear = maxYear;
+        let pickerMonth = maxMonthIndex; // 0-based
+        let selectedYear = maxYear;
+        let selectedMonthIndex = maxMonthIndex;
+
+        const monthPickerTrigger = document.getElementById('monthPickerTrigger');
+        const monthPickerLabel = document.getElementById('monthPickerLabel');
+        const monthPickerPopup = document.getElementById('monthPickerPopup');
+
+        function updateMonthPickerLabel() {
+            monthPickerLabel.textContent = `${selectedYear}年 ${monthNames[selectedMonthIndex]}`;
+        }
 
     // 初始化日期选择器
     const startTime1Picker = flatpickr("#startTime1", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 10),
+      defaultDate: new Date(maxYear, maxMonthIndex, 10),
       locale: 'zh'
     });
 
     const startTime2Picker = flatpickr("#startTime2", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 9),
+      defaultDate: new Date(maxYear, maxMonthIndex + 1, 9),
       locale: 'zh'
     });
 
     // 月份选择后更新日期范围
-    function onMonthSelected(year, month) {
-      pickerYear = year;
-      pickerMonth = month;
+        function onMonthSelected(year, month) {
+            pickerYear = year;
+            pickerMonth = month;
+            selectedYear = year;
+            selectedMonthIndex = month;
       startTime1Picker.setDate(new Date(year, month, 10));
       startTime2Picker.setDate(new Date(year, month + 1, 9));
       renderMonthGrid();
+            updateMonthPickerLabel();
+            monthPickerPopup.classList.remove('open');
     }
 
     // 渲染月份网格
@@ -408,24 +528,21 @@
       document.getElementById('yearDisplay').textContent = pickerYear + '年';
       grid.innerHTML = '';
 
-      const nowYear = today.getFullYear();
-      const nowMonth = today.getMonth();
-
       for (let i = 0; i < 12; i++) {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'month-btn';
         btn.textContent = monthNames[i];
 
-        const isFuture = pickerYear > nowYear || (pickerYear === nowYear && i > nowMonth);
+        const isFuture = pickerYear > maxYear || (pickerYear === maxYear && i > maxMonthIndex);
 
         if (isFuture) {
           btn.classList.add('disabled');
         } else {
-          if (pickerYear === pickerYear && i === pickerMonth) {
+                    if (pickerYear === selectedYear && i === selectedMonthIndex) {
             btn.classList.add('active');
           }
-          if (pickerYear === nowYear && i === nowMonth) {
+          if (pickerYear === maxYear && i === maxMonthIndex) {
             btn.classList.add('today');
           }
           btn.addEventListener('click', function () {
@@ -437,8 +554,8 @@
       }
 
       // 控制年份导航按钮状态
-      document.getElementById('nextYear').disabled = pickerYear >= nowYear;
-      document.getElementById('nextYear').style.opacity = pickerYear >= nowYear ? '0.3' : '1';
+      document.getElementById('nextYear').disabled = pickerYear >= maxYear;
+      document.getElementById('nextYear').style.opacity = pickerYear >= maxYear ? '0.3' : '1';
     }
 
     // 年份导航
@@ -448,13 +565,25 @@
     });
 
     document.getElementById('nextYear').addEventListener('click', function () {
-      if (pickerYear < today.getFullYear()) {
+      if (pickerYear < maxYear) {
         pickerYear++;
         renderMonthGrid();
       }
     });
 
-    renderMonthGrid();
+        monthPickerTrigger.addEventListener('click', function (event) {
+            event.stopPropagation();
+            monthPickerPopup.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!monthPickerPopup.contains(event.target) && !monthPickerTrigger.contains(event.target)) {
+                monthPickerPopup.classList.remove('open');
+            }
+        });
+
+        updateMonthPickerLabel();
+        renderMonthGrid();
   });
 
   function fetchMovingAverages() {
@@ -492,6 +621,8 @@
           <span>总成交量(${totalCkb})</span> =
           <span>${ratio.toFixed(6)}</span>`;
 
+        document.getElementById('statsRow').style.display = 'flex';
+        document.getElementById('lastPriceDetails').style.display = 'block';
         document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
           `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
         ).join('\n');
