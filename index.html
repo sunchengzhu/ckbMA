@@ -6,154 +6,452 @@
     <title>移动平均价计算器</title>
     <link rel="stylesheet" href="assets/bootstrap/bootstrap.min.css">
     <link rel="stylesheet" href="assets/flatpickr/flatpickr.min.css">
-    <script src="assets/flatpickr/plugins/monthSelect/index.js"></script>
     <script src="assets/flatpickr/flatpickr.min.js"></script>
     <script src="assets/flatpickr/l10n/zh.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <style>
-        .flatpickr-monthSelect-month {
-            margin-right: 8px; /* 右边距为8px */
-            white-space: nowrap; /* 防止月份名称换行 */
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #333;
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
+        .container {
+            max-width: 1050px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            padding: 30px 36px;
+            margin-top: 20px;
         }
 
         .container h1 {
-            margin-bottom: 30px; /* 增加30px的底部边距 */
+            margin-bottom: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 24px;
         }
 
         .container h2 {
-            margin-top: 30px; /* 增加30px的底部边距 */
+            margin-top: 30px;
         }
 
-        .controls {
+        /* --- 月份选择器 --- */
+        .month-picker-section {
+            margin-bottom: 24px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .month-picker-trigger {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border: 1px solid #dcdfe6;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            color: #303133;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .month-picker-trigger:hover {
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .month-picker-popup {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: #fff;
+            border: 1px solid #ebeef5;
+            border-radius: 10px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+            padding: 16px 18px;
+            z-index: 20;
+            min-width: 520px;
+            display: none;
+        }
+
+        .month-picker-popup.open {
+            display: block;
+        }
+
+        .month-picker-section label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .year-nav {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .year-nav button {
+            background: none;
+            border: 1px solid #dcdfe6;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #606266;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .year-nav button:hover {
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        .year-nav span {
+            font-size: 18px;
+            font-weight: 600;
+            color: #303133;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            max-width: 480px;
+        }
+
+        .month-grid .month-btn {
+            padding: 10px 0;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            color: #606266;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .month-grid .month-btn:hover:not(.disabled):not(.active) {
+            border-color: #c6e2ff;
+            color: #409eff;
+            background: #ecf5ff;
+        }
+
+        .month-grid .month-btn.active {
+            background: #409eff;
+            color: #fff;
+            border-color: #409eff;
+            font-weight: 500;
+        }
+
+        .month-grid .month-btn.disabled {
+            color: #c0c4cc;
+            background: #f5f7fa;
+            cursor: not-allowed;
+            border-color: #e4e7ed;
+        }
+
+        .month-grid .month-btn.today:not(.active):not(.disabled) {
+            border-color: #409eff;
+            color: #409eff;
+        }
+
+        /* --- 日期与计算控制行 --- */
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: nowrap;
+        }
+
+        .date-row {
+            display: flex;
+            flex-wrap: nowrap;
             align-items: center;
             gap: 10px;
-            width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
-        .controls label {
+        .date-row label {
             white-space: nowrap;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
         }
 
-        .controls input[type="text"] {
+        .date-row .form-control {
             flex: 1;
             min-width: 120px;
+            max-width: 160px;
         }
 
-        .input-group {
+        .form-control {
+            border-radius: 8px;
+            border: 1px solid #dcdfe6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #409eff;
+            box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.15);
+        }
+
+        /* --- 通用按钮 --- */
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            padding: 7px 24px;
+            box-shadow: 0 2px 6px rgba(0, 123, 255, 0.15);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.25);
+        }
+
+        .btn-outline-secondary {
+            padding: 7px 16px;
+        }
+
+        /* --- MA结果行 --- */
+        .ma-result-row {
             display: flex;
-            width: 300px;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0;
+            flex-shrink: 0;
         }
 
+        .ma-result-row .form-control {
+            width: 220px;
+        }
+
+        /* --- 换算区域 --- */
+        .calc-section {
+            background: #f9fafc;
+            border: 1px solid #ebeef5;
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .calc-section-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #909399;
+            margin-bottom: 0;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .calc-section-inner {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .calc-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: nowrap;
+            flex: 1;
+        }
+
+        .calc-row .form-control {
+            flex: 1;
+            min-width: 80px;
+            max-width: 200px;
+        }
+
+        .calc-row .form-control.calc-input-short {
+            max-width: 160px;
+        }
+
+        .calc-row .calc-sep {
+            color: #c0c4cc;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* --- 统计 --- */
+        .stats-row {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            flex-wrap: nowrap;
+        }
+
+        .ma-stats {
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .ma-stats span {
+            font-size: 1rem;
+        }
+
+        .stats-divider {
+            width: 1px;
+            height: 28px;
+            background: #dcdfe6;
+            margin: 0 20px;
+            flex-shrink: 0;
+        }
+
+        .stats {
+            color: #999;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .stats span {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .ma-label {
+            margin-right: 12px;
+        }
+
+        /* --- 明细 --- */
+        #lastPriceDetails {
+            background: #fafbfc;
+            border: 1px solid #ebeef5;
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 13px;
+            color: #606266;
+            line-height: 1.7;
+            max-height: 720px;
+            overflow-y: auto;
+            display: inline-block;
+        }
+
+        /* --- 底部链接 --- */
         .link-container {
             display: flex;
             justify-content: center;
             gap: 40px;
             text-align: center;
-            margin-top: 20px;
-            padding: 10px 0;
-            font-size: 16px;
+            margin-top: 28px;
+            padding: 14px 0;
+            font-size: 15px;
+            border-top: 1px solid #ebeef5;
         }
 
         .link-container a {
-            color: #007bff;
+            color: #409eff;
             text-decoration: none;
+            transition: color 0.2s;
         }
 
         .link-container a:hover {
+            color: #66b1ff;
             text-decoration: underline;
         }
 
-        .controls-half {
-            width: 100%;
-            margin-top: 50px;
-            margin-right: auto;
-            display: flex; /* 使用Flex布局保持内部元素在一行 */
-            flex-wrap: wrap; /* 允许内容在必要时进行换行 */
-            /*gap: 10px;         !* 元素之间的间距 *!*/
-            align-items: center; /* 垂直居中对齐 */
+        /* --- flatpickr 日期选择器美化 --- */
+        .flatpickr-input {
+            cursor: pointer;
         }
 
-        .controls-half .form-control {
-            flex-grow: 1; /* 确保输入框可以伸缩填充空余空间 */
+        .flatpickr-calendar {
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            border: none;
         }
 
-        .controls-half button {
-            flex-shrink: 0; /* 防止按钮缩小 */
+        .flatpickr-months {
+            border-radius: 10px 10px 0 0;
         }
 
-        .controls-half input[type="text"] {
-            flex: 1;
-            min-width: 140px;
+        .flatpickr-day.selected,
+        .flatpickr-day.selected:hover {
+            background: #409eff;
+            border-color: #409eff;
         }
 
-        /* 为所有除最后一个之外的元素设置默认的间隔 */
-        .controls-half > :not(:last-child) {
-            margin-right: 10px;
+        .flatpickr-day:hover {
+            background: #ecf5ff;
         }
-
-        /* 第三个元素与第四个元素之间增加间隔 */
-        .controls-half > :nth-child(3) {
-            margin-right: 40px;
-        }
-
-        .controls-half > * {
-            margin-bottom: 10px; /* 所有直接子元素底部的间距，影响换行元素 */
-        }
-
-        .ma-stats span {
-            font-size: 2rem; /* 调整字体大小 */
-        }
-
-        .stats span {
-            font-size: 1rem; /* 调整字体大小 */
-        }
-
-        .ma-label {
-            margin-right: 20px; /* 增加更大的右边距 */
-        }
-
     </style>
 </head>
 <body>
 <div class="container">
     <h1>CKB移动平均线（MA）</h1>
-    <div class="controls">
-        <label for="monthPicker">选择月份:</label>
-        <input type="text" class="form-control" id="monthPicker" placeholder="Select month">
-        <label for="startTime1">开始日期:</label>
-        <input type="text" class="form-control" id="startTime1" placeholder="Select start date">
-        <label for="startTime2">结束日期:</label>
-        <input type="text" class="form-control" id="startTime2" placeholder="Select end date">
-        <button onclick="fetchMovingAverages()" class="btn btn-primary">计算</button>
+
+    <!-- 月份选择器：4行3列 -->
+    <div class="month-picker-section">
+        <button type="button" id="monthPickerTrigger" class="month-picker-trigger">
+            <span id="monthPickerLabel"></span>
+            <span>▾</span>
+        </button>
+        <div id="monthPickerPopup" class="month-picker-popup">
+            <div class="year-nav">
+                <button type="button" id="prevYear" title="上一年">&#8249;</button>
+                <span id="yearDisplay"></span>
+                <button type="button" id="nextYear" title="下一年">&#8250;</button>
+            </div>
+            <div class="month-grid" id="monthGrid"></div>
+        </div>
     </div>
 
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" id="MA" placeholder="MA价格（收盘价平均值）">
-        <div class="input-group-append">
+    <!-- 日期范围 + 计算按钮 + MA结果同一行 -->
+    <div class="top-controls">
+        <div class="date-row">
+            <label for="startTime1">开始日期:</label>
+            <input type="text" class="form-control" id="startTime1" placeholder="选择开始日期">
+            <label for="startTime2">结束日期:</label>
+            <input type="text" class="form-control" id="startTime2" placeholder="选择结束日期">
+            <button onclick="fetchMovingAverages()" class="btn btn-primary">计算MA</button>
+        </div>
+
+        <div class="ma-result-row">
+            <input type="text" class="form-control" id="MA" placeholder="MA价格（收盘价平均值）" readonly>
             <button class="btn btn-outline-secondary" type="button" onclick="copyMA()">复制</button>
         </div>
     </div>
 
-    <div class="controls-half">
-        <input type="text" class="form-control" id="usdtInput" placeholder="输入USDT数量">
-        <input type="text" class="form-control" id="ckbInput" placeholder="输入CKB价格">
-        <button onclick="calculateResult()" class="btn btn-primary">计算</button>
-        <input type="text" class="form-control" id="resultOutput" placeholder="CKB数量">
-        <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
+    <!-- USDT/CKB 换算区域 -->
+    <div class="calc-section">
+        <div class="calc-section-inner">
+        <div class="calc-section-title">USDT → CKB 换算</div>
+        <div class="calc-row">
+            <input type="text" class="form-control calc-input-short" id="usdtInput" placeholder="USDT数量" onkeydown="if(event.key==='Enter')calculateResult()">
+            <span class="calc-sep">÷</span>
+            <input type="text" class="form-control calc-input-short" id="ckbInput" placeholder="CKB价格" onkeydown="if(event.key==='Enter')calculateResult()">
+            <button onclick="calculateResult()" class="btn btn-primary">=</button>
+            <input type="text" class="form-control" id="resultOutput" placeholder="CKB数量" readonly style="width:220px;flex:none">
+            <button class="btn btn-outline-secondary" type="button" onclick="copyResult()">复制</button>
+        </div>
+        </div>
     </div>
 
-    <h2 id="ma-stats" class="ma-stats"></h2>
-    <h3 id="stats" class="stats"></h3>
+    <div class="stats-row" id="statsRow" style="display:none">
+        <div id="ma-stats" class="ma-stats"></div>
+        <div class="stats-divider"></div>
+        <div id="stats" class="stats"></div>
+    </div>
 
-    <pre id="lastPriceDetails"></pre>
+    <pre id="lastPriceDetails" style="display:none"></pre>
 
     <div class="link-container">
         <a href="https://www.binance.com/zh-CN/trade/CKB_USDT" target="_blank">CKB/USDT 交易页</a>
@@ -163,43 +461,129 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
-    flatpickr.localize(flatpickr.l10ns.zh); // 应用中文本地化设置
+    flatpickr.localize(flatpickr.l10ns.zh);
 
     const today = new Date();
     const currentDay = today.getDate();
-    let selectedMonth = today;
+    const currentHour = today.getHours();
+    const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月',
+                         '7月', '8月', '9月', '10月', '11月', '12月'];
 
-    if (currentDay <= 10) {
-      selectedMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    // 11号8点之前：默认上月，上月及之前可选
+    // 11号8点之后（含11号8点整）：默认当月，当月及之前可选
+    let maxSelectableMonth;
+    if (currentDay < 11 || (currentDay === 11 && currentHour < 8)) {
+      maxSelectableMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    } else {
+      maxSelectableMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     }
 
-    flatpickr("#monthPicker", {
-      plugins: [new monthSelectPlugin({
-        dateFormat: "Y-m",
-        altFormat: "Y年m月",
-        locale: 'zh'
-      })],
-      defaultDate: selectedMonth,
-      onChange: function (selectedDates) {
-        const date = selectedDates[0];
-        startTime1Picker.setDate(new Date(date.getFullYear(), date.getMonth(), 10));
-        startTime2Picker.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 9));
-      }
-    });
+    const maxYear = maxSelectableMonth.getFullYear();
+    const maxMonthIndex = maxSelectableMonth.getMonth();
 
+        let pickerYear = maxYear;
+        let pickerMonth = maxMonthIndex; // 0-based
+        let selectedYear = maxYear;
+        let selectedMonthIndex = maxMonthIndex;
+
+        const monthPickerTrigger = document.getElementById('monthPickerTrigger');
+        const monthPickerLabel = document.getElementById('monthPickerLabel');
+        const monthPickerPopup = document.getElementById('monthPickerPopup');
+
+        function updateMonthPickerLabel() {
+            monthPickerLabel.textContent = `${selectedYear}年 ${monthNames[selectedMonthIndex]}`;
+        }
+
+    // 初始化日期选择器
     const startTime1Picker = flatpickr("#startTime1", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth(), 10),
+      defaultDate: new Date(maxYear, maxMonthIndex, 10),
       locale: 'zh'
     });
 
     const startTime2Picker = flatpickr("#startTime2", {
       enableTime: false,
       dateFormat: "Y-m-d",
-      defaultDate: new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 9),
+      defaultDate: new Date(maxYear, maxMonthIndex + 1, 9),
       locale: 'zh'
     });
+
+    // 月份选择后更新日期范围
+        function onMonthSelected(year, month) {
+            pickerYear = year;
+            pickerMonth = month;
+            selectedYear = year;
+            selectedMonthIndex = month;
+      startTime1Picker.setDate(new Date(year, month, 10));
+      startTime2Picker.setDate(new Date(year, month + 1, 9));
+      renderMonthGrid();
+            updateMonthPickerLabel();
+            monthPickerPopup.classList.remove('open');
+    }
+
+    // 渲染月份网格
+    function renderMonthGrid() {
+      const grid = document.getElementById('monthGrid');
+      document.getElementById('yearDisplay').textContent = pickerYear + '年';
+      grid.innerHTML = '';
+
+      for (let i = 0; i < 12; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'month-btn';
+        btn.textContent = monthNames[i];
+
+        const isFuture = pickerYear > maxYear || (pickerYear === maxYear && i > maxMonthIndex);
+
+        if (isFuture) {
+          btn.classList.add('disabled');
+        } else {
+                    if (pickerYear === selectedYear && i === selectedMonthIndex) {
+            btn.classList.add('active');
+          }
+          if (pickerYear === maxYear && i === maxMonthIndex) {
+            btn.classList.add('today');
+          }
+          btn.addEventListener('click', function () {
+            onMonthSelected(pickerYear, i);
+          });
+        }
+
+        grid.appendChild(btn);
+      }
+
+      // 控制年份导航按钮状态
+      document.getElementById('nextYear').disabled = pickerYear >= maxYear;
+      document.getElementById('nextYear').style.opacity = pickerYear >= maxYear ? '0.3' : '1';
+    }
+
+    // 年份导航
+    document.getElementById('prevYear').addEventListener('click', function () {
+      pickerYear--;
+      renderMonthGrid();
+    });
+
+    document.getElementById('nextYear').addEventListener('click', function () {
+      if (pickerYear < maxYear) {
+        pickerYear++;
+        renderMonthGrid();
+      }
+    });
+
+        monthPickerTrigger.addEventListener('click', function (event) {
+            event.stopPropagation();
+            monthPickerPopup.classList.toggle('open');
+        });
+
+        document.addEventListener('click', function (event) {
+            if (!monthPickerPopup.contains(event.target) && !monthPickerTrigger.contains(event.target)) {
+                monthPickerPopup.classList.remove('open');
+            }
+        });
+
+        updateMonthPickerLabel();
+        renderMonthGrid();
   });
 
   function fetchMovingAverages() {
@@ -233,10 +617,12 @@
           <span class="text-warning">${data.MA}</span>`;
 
         document.getElementById('stats').innerHTML = `
-          <span class="text-success">总成交额(${parseInt(totalUsdt)})</span> /
-          <span class="text-info">总成交量(${totalCkb})</span> =
-          <span class="text-warning">${ratio.toFixed(6)}</span>`;
+          <span>总成交额(${parseInt(totalUsdt)})</span> /
+          <span>总成交量(${totalCkb})</span> =
+          <span>${ratio.toFixed(6)}</span>`;
 
+        document.getElementById('statsRow').style.display = 'flex';
+        document.getElementById('lastPriceDetails').style.display = 'block';
         document.getElementById('lastPriceDetails').textContent = data.dailyLastPrice.map(item =>
           `${item.date} 收盘价: ${item.lastPrice}, 成交量(CKB): ${item.ckb}, 成交额(USDT): ${item.usdt}`
         ).join('\n');
@@ -245,8 +631,8 @@
   }
 
   function copyMA() {
-    const MA = document.getElementById('MA').value; // 获取需要复制的文本值
-    navigator.clipboard.writeText(MA) // 将文本写入剪贴板
+    const MA = document.getElementById('MA').value;
+    navigator.clipboard.writeText(MA)
       .then(() => {
         console.log('Text successfully copied to clipboard');
       })
