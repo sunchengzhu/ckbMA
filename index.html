@@ -392,6 +392,246 @@
         .flatpickr-day:hover {
             background: #ecf5ff;
         }
+
+        /* --- 移动端响应式设计 --- */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px 16px;
+                margin-top: 10px;
+                border-radius: 8px;
+            }
+
+            .container h1 {
+                font-size: 20px;
+                margin-bottom: 20px;
+                text-align: center;
+            }
+
+            /* 月份选择器移动端优化 */
+            .month-picker-section {
+                width: 100%;
+                margin-bottom: 16px;
+            }
+
+            .month-picker-trigger {
+                width: 100%;
+                justify-content: center;
+                padding: 10px 14px;
+                font-size: 15px;
+            }
+
+            .month-picker-popup {
+                min-width: unset;
+                width: calc(100vw - 40px);
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px;
+            }
+
+            .month-grid {
+                max-width: 100%;
+                gap: 6px;
+            }
+
+            .month-grid .month-btn {
+                padding: 12px 0;
+                font-size: 13px;
+            }
+
+            /* 顶部控制区域改为垂直布局 */
+            .top-controls {
+                flex-direction: column;
+                gap: 16px;
+                width: 100%;
+            }
+
+            .date-row {
+                flex-direction: column;
+                width: 100%;
+                gap: 12px;
+            }
+
+            .date-row label {
+                font-size: 13px;
+            }
+
+            .date-row .form-control {
+                max-width: 100%;
+                width: 100%;
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+
+            .date-row .btn-primary {
+                width: 100%;
+                padding: 12px 24px;
+                font-size: 15px;
+            }
+
+            /* MA结果行移动端优化 */
+            .ma-result-row {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .ma-result-row .form-control {
+                width: 100%;
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+
+            .ma-result-row .btn {
+                width: 100%;
+                padding: 10px;
+            }
+
+            /* 计算器区域移动端优化 */
+            .calc-section {
+                width: 100%;
+                padding: 16px 12px;
+                margin-top: 16px;
+            }
+
+            .calc-section-inner {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .calc-section-title {
+                text-align: center;
+                font-size: 13px;
+            }
+
+            .calc-row {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .calc-row .form-control {
+                max-width: 100%;
+                width: 100%;
+                font-size: 14px;
+                padding: 10px 12px;
+            }
+
+            .calc-row .calc-sep {
+                display: none;
+            }
+
+            .calc-row .btn-primary {
+                width: 100%;
+                padding: 12px;
+                font-size: 15px;
+            }
+
+            .calc-row .btn-outline-secondary {
+                width: 100%;
+                padding: 10px;
+            }
+
+            /* Override inline style for mobile */
+            .calc-row .form-control#resultOutput {
+                width: 100% !important;
+                flex: 1 !important;
+            }
+
+            /* 统计信息移动端优化 */
+            .stats-row {
+                flex-direction: column;
+                gap: 12px;
+                margin-top: 20px;
+                margin-bottom: 12px;
+            }
+
+            .stats-divider {
+                display: none;
+            }
+
+            .ma-stats,
+            .stats {
+                width: 100%;
+                text-align: center;
+            }
+
+            .ma-stats span,
+            .stats span {
+                font-size: 0.85rem;
+                display: inline-block;
+            }
+
+            /* 明细区域移动端优化 */
+            #lastPriceDetails {
+                width: 100%;
+                max-height: 400px;
+                font-size: 12px;
+                padding: 12px;
+                line-height: 1.6;
+            }
+
+            /* 底部链接移动端优化 */
+            .link-container {
+                flex-direction: column;
+                gap: 16px;
+                margin-top: 20px;
+                padding: 12px 0;
+                font-size: 14px;
+            }
+
+            /* 表单控件触摸优化 */
+            .form-control {
+                -webkit-appearance: none;
+                -moz-appearance: none;
+                appearance: none;
+            }
+
+            .btn {
+                -webkit-tap-highlight-color: transparent;
+                touch-action: manipulation;
+            }
+
+            /* 年份导航移动端优化 */
+            .year-nav button {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
+            }
+        }
+
+        /* 小屏幕优化 (< 480px) */
+        @media screen and (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+
+            .container {
+                padding: 16px 12px;
+            }
+
+            .container h1 {
+                font-size: 18px;
+                margin-bottom: 16px;
+            }
+
+            .month-picker-popup {
+                width: calc(100vw - 20px);
+            }
+
+            .ma-stats span,
+            .stats span {
+                font-size: 0.8rem;
+            }
+
+            #lastPriceDetails {
+                font-size: 11px;
+                padding: 10px;
+            }
+        }
     </style>
 </head>
 <body>
